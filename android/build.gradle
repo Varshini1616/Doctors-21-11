@@ -1,0 +1,66 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    ext {
+        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '34.0.0'
+        minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '23')
+        compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '34')
+        targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
+        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.8.21'  // Compatible Kotlin version
+        ndkVersion = "26.1.10909125"
+    }
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        // Define versions explicitly to ensure compatibility with Gradle 7.6
+        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath 'com.facebook.react:react-native-gradle-plugin:0.71.7'  // Adjust to match your RN version
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
+// Apply the React Native root project plugin
+apply plugin: "com.facebook.react"
+
+// Specify repositories for all projects (needed for React Native dependencies)
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://www.jitpack.io' }
+
+        // Ensure React Native and JSC dependencies are accessible
+        maven {
+            url = uri("${rootDir}/node_modules/react-native/android")
+        }
+        maven {
+            url = uri("${rootDir}/node_modules/jsc-android/dist")
+        }
+    }
+}
+
+// Configure Java toolchain only, without any source/target compatibility settings
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            project.android {
+                compileSdkVersion compileSdkVersion
+
+                compileOptions {
+                    // Use Java toolchain for Java 11 or Java 17 without sourceCompatibility/targetCompatibility
+                    javaToolchain {
+                        languageVersion = JavaLanguageVersion.of(11)  // Adjust to 17 if using Java 17
+                    }
+                }
+
+                kotlinOptions {
+                    jvmTarget = "11"  // Match JVM target with Java version
+                }
+            }
+        }
+    }
+}
